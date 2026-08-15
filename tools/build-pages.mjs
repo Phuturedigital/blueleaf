@@ -27,7 +27,23 @@ import { BANNER, FOOTER, ICONS, PAGES, head, nav } from './chrome.mjs';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const CHECK = process.argv.includes('--check');
 
-const page = (p, main) => `<!doctype html>
+/* TWO generators write these files. This one owns the page; the shared
+   tools/stamp-network.mjs over in the insurespr repo owns the "More concepts by
+   Phuture Digital" section inside it. Whichever ran last would win — so this
+   one reads its own previous output, lifts the stamped block out, and puts it
+   back. Rebuilding therefore never destroys the cross-link block, and
+   re-stamping never destroys a content edit, in either order.
+
+   Same idea stamp-network.mjs already uses to protect authored disclaimers. */
+const NETWORK_RE = /<!-- pd-network:start -->[\s\S]*?<!-- pd-network:end -->/;
+
+async function keepNetworkBlock(dest) {
+  const current = await readFile(dest, 'utf8').catch(() => '');
+  const found = current.match(NETWORK_RE);
+  return found ? '\n' + found[0] + '\n' : '';
+}
+
+const page = (p, main, network) => `<!doctype html>
 <html lang="en-ZA">
 <head>
 ${head(p)}
@@ -55,7 +71,7 @@ ${nav(p.file)}
 <main id="main">
 ${main.trim()}
 </main>
-
+${network}
 <!-- footer:start -->
 ${FOOTER}
 <!-- footer:end -->
@@ -69,8 +85,8 @@ let stale = 0;
 
 for (const p of PAGES) {
   const main = await readFile(join(ROOT, 'tools', 'content', p.file), 'utf8');
-  const html = page(p, main);
   const dest = join(ROOT, p.file);
+  const html = page(p, main, await keepNetworkBlock(dest));
 
   if (CHECK) {
     const current = await readFile(dest, 'utf8').catch(() => '');
