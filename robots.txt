@@ -1,0 +1,15 @@
+# Blue Leaf Ice Company is a REAL business with a real site at blueleafice.co.za.
+# This is an independent design concept by Phuture Digital and must never be
+# indexed. If it were, it would compete against the actual company in the exact
+# searches that matter most to them — "ice delivery Edenvale", "bulk ice
+# Gauteng" — and could send a paying customer to a site with no one behind it.
+#
+# Every price and delivery fee here was copied from their public site in August
+# 2026 and will go stale. An indexed stale price is worse than no page at all.
+#
+# Reinforces the X-Robots-Tag: noindex, nofollow header set in vercel.json and
+# the per-page <meta name="robots"> tag. All three are deliberate: headers cover
+# non-HTML responses, the meta tag survives if the header config is lost, and
+# this file is what most crawlers check first.
+User-agent: *
+Disallow: /

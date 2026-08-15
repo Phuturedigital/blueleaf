@@ -1,0 +1,768 @@
+/* ============================================================================
+   Blue Leaf Ice Company — concept redesign by Phuture Digital
+   ----------------------------------------------------------------------------
+   Not the company's official site. See the banner on every page.
+
+   PALETTE PROVENANCE. Nothing here is invented. Two sources, different
+   authority:
+     - DECLARED. #5AC1FF and #00001F are the two non-Webflow-default colours in
+       Blue Leaf's own stylesheet (14 and 13 uses). That is designer intent and
+       it wins for the accent and the darkest ink.
+     - SAMPLED. #114B95, #2D71B2 and #C6F2FF were read out of the supplied logo
+       raster by tools/sample-colours.mjs. They fill in the middle of the scale,
+       which the declared pair does not cover.
+   #00001F is used as a reference point rather than literally: at hue 240 and
+   12% lightness it reads as black-violet, so the ink here is rotated to the
+   logo's own 210 hue so that dark surfaces read navy rather than dead black.
+
+   TYPOGRAPHY. The supplied logo sets BLUE LEAF in a high-contrast Didone with
+   wide tracking; the live site sets everything in Instrument Sans. Those two
+   things disagree. This resolves the disagreement in the logo's favour for
+   display type while KEEPING Instrument Sans for body copy — the redesign is
+   meant to fix a mismatch, not to throw away a reasonable decision.
+   ========================================================================= */
+
+:root {
+  /* --- ink ------------------------------------------------------------- */
+  --ink:        #071A2E;   /* deep navy ground */
+  --ink-2:      #0E2F55;   /* raised dark surface */
+  --ink-soft:   #3C566F;   /* body text on light */
+  --ink-mute:   #6A8199;   /* captions, meta */
+
+  /* --- brand ----------------------------------------------------------- */
+  --brand:      #114B95;   /* sampled: the logo wordmark navy */
+  --brand-mid:  #2D71B2;   /* sampled: the leaf mid-tone */
+  --ice:        #5AC1FF;   /* DECLARED in Blue Leaf's own CSS */
+  --ice-deep:   #2FA8F0;   /* darkened ice — passes AA on white, --ice does not */
+  --ice-pale:   #C6F2FF;   /* sampled: the logo's highlight */
+
+  /* --- surfaces --------------------------------------------------------- */
+  --mist:       #F2F8FC;   /* page ground */
+  --mist-2:     #E4F0F8;   /* alternating band */
+  --card:       #FFFFFF;
+  --line:       #D5E4EF;
+  --line-soft:  #E8F1F7;
+
+  /* --- accents ---------------------------------------------------------- */
+  --warn:       #B25E00;   /* the "not affiliated" register, and form errors */
+  --go:         #1C7A4A;   /* free-delivery zone */
+
+  /* --- type ------------------------------------------------------------- */
+  --f-display: 'Bodoni Moda', 'Didot', Georgia, 'Times New Roman', serif;
+  --f-body: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* --- metrics ----------------------------------------------------------- */
+  --wrap: 1140px;
+  --gutter: clamp(18px, 4vw, 44px);
+  --band: clamp(56px, 8vw, 104px);
+  --radius: 14px;
+  --radius-lg: 22px;
+  --shadow: 0 1px 2px rgba(7, 26, 46, .05), 0 8px 26px rgba(7, 26, 46, .07);
+  --shadow-lift: 0 2px 6px rgba(7, 26, 46, .07), 0 18px 44px rgba(7, 26, 46, .13);
+}
+
+/* ============================================================================
+   Reset
+   ========================================================================= */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--mist);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4 { margin: 0; line-height: 1.14; letter-spacing: -.015em; font-weight: 600; }
+p { margin: 0; }
+ul, ol { margin: 0; padding: 0; }
+li { list-style: none; }
+
+img, svg { display: block; max-width: 100%; }
+
+/* An <img>'s width/height ATTRIBUTES become presentational hints that beat a
+   bare max-width:100% for the height, so a constrained image squashes and
+   `aspect-ratio` — which only resolves a MISSING dimension — silently does
+   nothing. Pairing the attribute selector restores the ratio. Do not remove. */
+img[width][height] { height: auto; }
+
+/* Images that must FILL their frame rather than follow their own ratio have to
+   OUT-SPECIFY the guard above. img[width][height] scores (0,2,1) — two
+   attribute selectors beat a lone class — so `.seg-card img` at (0,1,1) would
+   lose and the fill would silently collapse to intrinsic height. Matching the
+   attributes brings these to (0,3,1). Every new fill selector must repeat
+   [width][height] or it will not work. */
+.hero-figure img[width][height],
+.seg-card img[width][height],
+.proof-figure img[width][height],
+.band-bg img[width][height],
+.split-figure img[width][height],
+.prod-figure img[width][height] { height: 100%; }
+
+a { color: var(--brand); text-underline-offset: 3px; }
+a:hover { color: var(--ice-deep); }
+
+button, input, select, textarea { font: inherit; color: inherit; }
+
+:focus-visible {
+  outline: 3px solid var(--ice-deep);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.skip {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 0 0 8px 0;
+}
+.skip:focus { left: 0; }
+
+.wrap { max-width: var(--wrap); margin: 0 auto; padding-inline: var(--gutter); }
+.vh {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ============================================================================
+   Concept banner
+   ----------------------------------------------------------------------------
+   Blue Leaf Ice Company is a REAL business. This banner plus the noindex header
+   in vercel.json and robots.txt are what keep a concept redesign from competing
+   with, or being mistaken for, their actual site. Both are required: the banner
+   stops a person mistaking it, the header stops Google surfacing it.
+   ========================================================================= */
+
+.concept-banner {
+  background: var(--ink);
+  color: #DCEAF6;
+  font-size: 12.5px;
+  line-height: 1.5;
+  padding: 9px var(--gutter);
+  border-bottom: 1px solid rgba(90, 193, 255, .22);
+}
+.concept-banner .inner {
+  max-width: var(--wrap); margin: 0 auto;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.concept-banner strong { color: var(--ice); font-weight: 600; }
+.concept-banner a { color: #fff; text-decoration: underline; }
+.concept-banner a:hover { color: var(--ice); }
+.concept-banner .dot {
+  flex: none; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--ice); margin-top: 7px;
+}
+
+/* ============================================================================
+   Navigation
+   ========================================================================= */
+
+.nav {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(242, 248, 252, .88);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid transparent;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.nav.stuck { border-bottom-color: var(--line); box-shadow: 0 6px 20px rgba(7, 26, 46, .06); }
+
+.nav-inner {
+  max-width: var(--wrap); margin: 0 auto; padding: 12px var(--gutter);
+  display: flex; align-items: center; gap: 18px;
+}
+
+.brand { display: flex; align-items: center; gap: 11px; text-decoration: none; color: inherit; flex: none; }
+.brand-mark { width: 30px; flex: none; }
+.brand-type { display: grid; gap: 1px; }
+/* Both are <span>s and both are used OUTSIDE .brand-type (the footer lockup
+   puts them straight into a div), so they carry their own display:block rather
+   than relying on a grid parent to lay them out. */
+.brand-name, .brand-sub { display: block; }
+.brand-name {
+  font-family: var(--f-display);
+  font-size: 17px; font-weight: 600; letter-spacing: .13em;
+  text-transform: uppercase; line-height: 1; color: var(--ink);
+}
+.brand-sub {
+  font-size: 8.5px; letter-spacing: .26em; text-transform: uppercase;
+  color: var(--ink-mute); font-weight: 500; line-height: 1;
+}
+
+.nav-links { display: flex; gap: 3px; margin-left: auto; align-items: center; }
+.nav-links a {
+  display: block; padding: 9px 12px; border-radius: 9px;
+  font-size: 14.5px; font-weight: 500; color: var(--ink-soft); text-decoration: none;
+  transition: background .16s ease, color .16s ease;
+}
+.nav-links a:hover { background: var(--mist-2); color: var(--ink); }
+.nav-links a[aria-current="page"] { color: var(--brand); background: var(--mist-2); font-weight: 600; }
+
+/* The phone number is a first-class navigation item, not a footer detail.
+   Blue Leaf's live site renders 063 515 5132 INSIDE A PNG, so on a phone — the
+   device most of their traffic is on, buying a perishable product with same-day
+   urgency — it cannot be tapped, copied, or read by a screen reader. Making it
+   a real tel: link in persistent chrome is the single highest-value change on
+   this site. */
+/* Scoped as `.nav-links a.nav-call` (0,2,1) on purpose. `.nav-links a` above
+   scores (0,1,1) and sets display:block — a bare `.nav-call` at (0,1,0) LOSES
+   to it, and the button silently stacks its icon above its label. Same trap as
+   the img[width][height] guard at the top of this file: a descendant selector
+   written loosely out-ranks a component class written specifically. */
+.nav-links a.nav-call {
+  display: inline-flex; align-items: center; gap: 8px; flex: none;
+  padding: 9px 15px; border-radius: 999px;
+  background: var(--ink); color: #fff !important;
+  font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap;
+  transition: background .16s ease, transform .16s ease;
+}
+.nav-call:hover { background: var(--brand); color: #fff; transform: translateY(-1px); }
+.nav-call svg { width: 15px; height: 15px; flex: none; }
+
+.nav-toggle {
+  display: none; margin-left: auto;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 10px; padding: 9px 12px; cursor: pointer;
+  font-size: 14px; font-weight: 600; color: var(--ink);
+}
+
+@media (max-width: 900px) {
+  .nav-toggle { display: block; }
+  .nav-links {
+    display: none; position: absolute; left: 0; right: 0; top: 100%;
+    flex-direction: column; gap: 2px; align-items: stretch;
+    background: var(--card); border-bottom: 1px solid var(--line);
+    padding: 10px var(--gutter) 16px; box-shadow: var(--shadow);
+  }
+  .nav-links.open { display: flex; }
+  .nav-links a { padding: 12px 10px; font-size: 16px; }
+  .nav-call { order: -1; justify-content: center; margin-bottom: 6px; }
+}
+@media (max-width: 420px) {
+  .brand-name { font-size: 15px; letter-spacing: .1em; }
+  .brand-mark { width: 25px; }
+}
+
+/* ============================================================================
+   Typographic scale
+   ========================================================================= */
+
+.eyebrow {
+  font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+  font-weight: 600; color: var(--ice-deep); margin-bottom: 14px;
+}
+.eyebrow.on-dark { color: var(--ice); }
+
+.h-xl {
+  font-family: var(--f-display);
+  font-size: clamp(34px, 6.2vw, 62px); font-weight: 500;
+  line-height: 1.04; letter-spacing: -.02em; text-wrap: balance;
+}
+.h-lg {
+  font-family: var(--f-display);
+  font-size: clamp(27px, 4vw, 41px); font-weight: 500;
+  line-height: 1.1; letter-spacing: -.015em; text-wrap: balance;
+}
+.h-md {
+  font-family: var(--f-display);
+  font-size: clamp(21px, 2.6vw, 27px); font-weight: 500; line-height: 1.2;
+}
+.lede {
+  font-size: clamp(16.5px, 1.7vw, 19px); line-height: 1.6;
+  color: var(--ink-soft); max-width: 60ch;
+}
+.small { font-size: 13.5px; line-height: 1.55; color: var(--ink-mute); }
+
+.band { padding-block: var(--band); }
+.band.alt { background: var(--mist-2); }
+.band.dark { background: var(--ink); color: #E3EFF8; }
+.band.dark .lede, .band.dark .small { color: #A9C4DA; }
+.band.dark .h-lg, .band.dark .h-md, .band.dark .h-xl { color: #fff; }
+
+.sec-head { max-width: 62ch; margin-bottom: clamp(28px, 4vw, 46px); }
+.sec-head .lede { margin-top: 14px; }
+
+/* ============================================================================
+   Buttons
+   ========================================================================= */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  padding: 13px 24px; border-radius: 999px; border: 1px solid transparent;
+  font-size: 15px; font-weight: 600; text-decoration: none; cursor: pointer;
+  transition: transform .16s ease, background .16s ease, box-shadow .16s ease;
+  min-height: 46px;
+}
+.btn svg { width: 17px; height: 17px; flex: none; }
+.btn:hover { transform: translateY(-2px); }
+
+.btn-primary { background: var(--brand); color: #fff; box-shadow: 0 6px 18px rgba(17, 75, 149, .26); }
+.btn-primary:hover { background: #0D3C7A; color: #fff; box-shadow: 0 10px 26px rgba(17, 75, 149, .32); }
+
+.btn-ice { background: var(--ice); color: var(--ink); box-shadow: 0 6px 18px rgba(90, 193, 255, .34); }
+.btn-ice:hover { background: var(--ice-pale); color: var(--ink); }
+
+.btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn-ghost:hover { background: var(--card); border-color: var(--ice-deep); color: var(--brand); }
+/* On the CTA bands the ghost button sits over a photograph, where a 30%
+   white hairline all but disappears. It gets a translucent fill and a much
+   stronger border so it still reads as a button against the busiest frame. */
+.band.dark .btn-ghost {
+  color: #fff; border-color: rgba(255, 255, 255, .55);
+  background: rgba(255, 255, 255, .1);
+}
+.band.dark .btn-ghost:hover { background: rgba(255, 255, 255, .22); color: #fff; }
+
+.btn-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+
+/* ============================================================================
+   Hero
+   ----------------------------------------------------------------------------
+   A split rather than a full-bleed photograph with a scrim. Two reasons: the
+   headline stays on a flat ground so it needs no scrim fighting the image, and
+   the left column can carry the two things a visitor actually came for — the
+   phone number and whether Blue Leaf delivers to them.
+   ========================================================================= */
+
+.hero { background: var(--card); border-bottom: 1px solid var(--line); }
+.hero-grid {
+  display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(28px, 4.5vw, 64px);
+  align-items: center; padding-block: clamp(38px, 5.5vw, 76px);
+}
+.hero-copy .lede { margin-top: 18px; }
+
+.hero-figure {
+  position: relative; border-radius: var(--radius-lg); overflow: hidden;
+  aspect-ratio: 4 / 3.4; background: var(--mist-2); box-shadow: var(--shadow-lift);
+}
+.hero-figure img { width: 100%; object-fit: cover; }
+
+/* A frosted card sitting over the photograph, carrying the delivery promise.
+   Bottom-left because the hero image's own detail sits top-right. */
+.hero-tag {
+  position: absolute; left: 16px; right: 16px; bottom: 16px;
+  background: rgba(7, 26, 46, .82);
+  backdrop-filter: blur(10px);
+  color: #fff; padding: 14px 17px; border-radius: var(--radius);
+  display: flex; gap: 13px; align-items: center;
+}
+.hero-tag .n {
+  font-family: var(--f-display); font-size: 27px; line-height: 1;
+  color: var(--ice); font-weight: 600; flex: none;
+}
+.hero-tag p { font-size: 13.5px; line-height: 1.45; color: #CFE4F4; }
+.hero-tag strong { color: #fff; font-weight: 600; }
+
+@media (max-width: 880px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 30px; }
+  .hero-figure { aspect-ratio: 16 / 11; }
+}
+
+/* --- the trust strip under the hero ------------------------------------- */
+.hero-strip {
+  border-top: 1px solid var(--line-soft);
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+  background: var(--line-soft);
+}
+.hero-strip li { background: var(--card); padding: 18px var(--gutter); text-align: center; }
+/* display:block is required, not cosmetic — these are <span>s, so without it
+   the figure and its label run together on one line. */
+.hero-strip .k {
+  display: block;
+  font-family: var(--f-display); font-size: clamp(19px, 2.4vw, 26px);
+  color: var(--brand); font-weight: 600; line-height: 1;
+}
+.hero-strip .v { display: block; font-size: 12.5px; color: var(--ink-mute); margin-top: 6px; line-height: 1.4; }
+@media (max-width: 700px) { .hero-strip { grid-template-columns: repeat(2, 1fr); } }
+
+/* ============================================================================
+   Zone finder — the signature component
+   ----------------------------------------------------------------------------
+   Blue Leaf's delivery zones, fees and suburb lists currently exist ONLY as
+   pixels inside a generated PNG. That means: invisible to search (nobody
+   searching "ice delivery Bedfordview" can find them), unreadable by a screen
+   reader, untranslatable, unselectable, and impossible to correct without
+   re-rendering an image. Rebuilding it as real markup is the single clearest
+   demonstration of what this redesign is for, so it gets pride of place.
+   ========================================================================= */
+
+.finder {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius-lg); padding: clamp(20px, 3vw, 32px);
+  box-shadow: var(--shadow);
+}
+.finder-form { display: flex; gap: 10px; flex-wrap: wrap; }
+.finder-field { flex: 1 1 240px; min-width: 0; position: relative; }
+.finder-field label {
+  display: block; font-size: 12.5px; font-weight: 600;
+  color: var(--ink-soft); margin-bottom: 7px;
+}
+.finder-field input {
+  width: 100%; padding: 13px 15px; border-radius: 11px;
+  border: 1px solid var(--line); background: var(--mist);
+  font-size: 16px; /* 16px minimum, or iOS Safari zooms the page on focus */
+}
+.finder-field input:focus { background: #fff; }
+.finder-form .btn { align-self: flex-end; min-height: 48px; }
+
+.finder-out { margin-top: 18px; }
+.finder-card {
+  display: flex; gap: 15px; align-items: flex-start;
+  padding: 17px 19px; border-radius: var(--radius);
+  border: 1px solid var(--line); background: var(--mist);
+}
+.finder-card .badge {
+  flex: none; width: 46px; height: 46px; border-radius: 12px;
+  display: grid; place-items: center;
+  font-family: var(--f-display); font-size: 21px; font-weight: 600;
+  background: var(--brand); color: #fff;
+}
+.finder-card .t { font-weight: 600; font-size: 16.5px; }
+.finder-card .d { font-size: 14px; color: var(--ink-soft); margin-top: 3px; }
+
+.finder-card.is-free { border-color: rgba(28, 122, 74, .35); background: rgba(28, 122, 74, .06); }
+.finder-card.is-free .badge { background: var(--go); }
+.finder-card.is-unknown { border-color: rgba(178, 94, 0, .35); background: rgba(178, 94, 0, .06); }
+.finder-card.is-unknown .badge { background: var(--warn); font-size: 19px; }
+
+.finder-hint { font-size: 13px; color: var(--ink-mute); margin-top: 12px; }
+.finder-hint button {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  color: var(--brand); font-weight: 600; text-decoration: underline;
+  text-underline-offset: 3px; font-size: inherit;
+}
+
+/* ============================================================================
+   Zone cards
+   ========================================================================= */
+
+.zones { display: grid; grid-template-columns: repeat(auto-fit, minmax(232px, 1fr)); gap: 16px; }
+.zone {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column;
+}
+.zone-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.zone-n {
+  width: 40px; height: 40px; border-radius: 11px; flex: none; display: grid; place-items: center;
+  font-family: var(--f-display); font-size: 19px; font-weight: 600;
+  background: var(--mist-2); color: var(--brand);
+}
+.zone-fee { font-size: 20px; font-weight: 700; line-height: 1.1; }
+.zone-fee .sub { display: block; font-size: 12px; font-weight: 500; color: var(--ink-mute); letter-spacing: .02em; }
+.zone-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 14px; }
+.zone-list li {
+  font-size: 12.5px; padding: 4px 10px; border-radius: 999px;
+  background: var(--mist-2); color: var(--ink-soft);
+}
+.zone-note { font-size: 12.5px; color: var(--ink-mute); margin-top: 12px; }
+
+.zone.free { border-color: rgba(28, 122, 74, .35); }
+.zone.free .zone-n { background: rgba(28, 122, 74, .12); color: var(--go); }
+.zone.free .zone-fee { color: var(--go); }
+
+/* ============================================================================
+   Pricing
+   ========================================================================= */
+
+.prods { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.prod {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 24px; display: flex; flex-direction: column;
+}
+.prod.feature { border-color: var(--ice-deep); box-shadow: 0 0 0 3px rgba(90, 193, 255, .17); }
+.prod-name { font-family: var(--f-display); font-size: 22px; font-weight: 600; }
+.prod-size { font-size: 13px; color: var(--ink-mute); letter-spacing: .05em; text-transform: uppercase; margin-top: 4px; font-weight: 600; }
+.prod-price { margin: 18px 0 4px; display: flex; align-items: baseline; gap: 5px; }
+.prod-price .r { font-family: var(--f-display); font-size: 40px; font-weight: 600; line-height: 1; color: var(--brand); }
+.prod-price .u { font-size: 14px; color: var(--ink-mute); }
+.prod-from { font-size: 12.5px; color: var(--ink-mute); }
+.prod ul { margin: 18px 0 22px; display: grid; gap: 8px; }
+.prod ul li { font-size: 14px; color: var(--ink-soft); padding-left: 22px; position: relative; }
+.prod ul li::before {
+  content: ""; position: absolute; left: 0; top: 8px;
+  width: 11px; height: 7px; border-left: 2px solid var(--ice-deep);
+  border-bottom: 2px solid var(--ice-deep); transform: rotate(-45deg);
+}
+.prod .btn { margin-top: auto; width: 100%; }
+
+/* --- tier table ---------------------------------------------------------- */
+.tiers { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.tiers caption {
+  text-align: left; font-size: 13px; color: var(--ink-mute);
+  padding-bottom: 10px; caption-side: top;
+}
+.tiers th, .tiers td { padding: 11px 13px; text-align: left; border-bottom: 1px solid var(--line-soft); }
+.tiers thead th {
+  font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--ink-mute); font-weight: 600; border-bottom-color: var(--line);
+}
+.tiers td:last-child, .tiers th:last-child { text-align: right; }
+.tiers tbody tr:last-child td { border-bottom: 0; }
+.tiers .best td { font-weight: 700; color: var(--brand); }
+.tiers .save { font-size: 12px; color: var(--go); font-weight: 600; }
+
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ============================================================================
+   Segment cards
+   ========================================================================= */
+
+/* 280px min, not 220. There are exactly SIX segment cards, and auto-fit at
+   220px yields four columns on a 1140px wrap — so the row breaks 4+2 with two
+   orphans. 280px yields three, and six divides into three cleanly. Card counts
+   have to be designed for; `auto-fit` alone does not know how many there are. */
+.segs { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.seg-card {
+  position: relative; border-radius: var(--radius); overflow: hidden;
+  aspect-ratio: 4 / 3; background: var(--ink); display: block;
+  text-decoration: none; color: #fff;
+}
+.seg-card img { width: 100%; object-fit: cover; transition: transform .5s ease; }
+.seg-card:hover img { transform: scale(1.05); }
+.seg-card figcaption, .seg-card .cap {
+  position: absolute; inset: auto 0 0 0; padding: 34px 16px 15px;
+  background: linear-gradient(to top, rgba(7, 26, 46, .9) 12%, rgba(7, 26, 46, 0));
+  font-weight: 600; font-size: 16px; color: #fff;
+}
+.seg-card .cap span { display: block; font-weight: 400; font-size: 13px; color: #B9D4E8; margin-top: 2px; }
+
+/* ============================================================================
+   Split feature (image + copy)
+   ========================================================================= */
+
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(26px, 4vw, 58px); align-items: center; }
+.split.rev .split-figure { order: 2; }
+.split-figure {
+  border-radius: var(--radius-lg); overflow: hidden; aspect-ratio: 4 / 3;
+  background: var(--mist-2); box-shadow: var(--shadow);
+}
+.split-figure img { width: 100%; object-fit: cover; }
+@media (max-width: 820px) {
+  .split { grid-template-columns: 1fr; }
+  .split.rev .split-figure { order: 0; }
+}
+
+/* --- proof band (the food-grade story) ------------------------------------ */
+.proof { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 34px; }
+.proof-figure {
+  border-radius: var(--radius); overflow: hidden; aspect-ratio: 3 / 2;
+  background: var(--ink-2);
+}
+.proof-figure img { width: 100%; object-fit: cover; }
+@media (max-width: 700px) {
+  .proof { grid-template-columns: 1fr 1fr; }
+  .proof-figure:last-child { display: none; }
+}
+
+/* ============================================================================
+   Generic cards / lists
+   ========================================================================= */
+
+/* Default 240px gives four columns at desktop, which suits the three- and
+   four-card groups. `.cards-3up` raises the floor to force three columns for
+   the SIX-card groups, which would otherwise break 4+2. Same reasoning as
+   .segs above: the column count has to match the item count. */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.cards.cards-3up { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.card {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 24px;
+}
+.band.dark .card { background: var(--ink-2); border-color: rgba(255, 255, 255, .09); }
+.card h3 { font-size: 17.5px; margin-bottom: 9px; font-weight: 600; letter-spacing: -.005em; }
+.card p { font-size: 14.5px; color: var(--ink-soft); line-height: 1.6; }
+.band.dark .card p { color: #A9C4DA; }
+.card-icon {
+  width: 40px; height: 40px; border-radius: 11px; margin-bottom: 15px;
+  display: grid; place-items: center; background: var(--mist-2); color: var(--brand);
+}
+.card-icon svg { width: 20px; height: 20px; }
+.band.dark .card-icon { background: rgba(90, 193, 255, .14); color: var(--ice); }
+
+.ticks { display: grid; gap: 11px; margin-top: 22px; }
+.ticks li { position: relative; padding-left: 30px; font-size: 15px; color: var(--ink-soft); }
+.ticks li::before {
+  content: ""; position: absolute; left: 4px; top: 8px;
+  width: 12px; height: 7px; border-left: 2.5px solid var(--ice-deep);
+  border-bottom: 2.5px solid var(--ice-deep); transform: rotate(-45deg);
+}
+.band.dark .ticks li { color: #C6DCEC; }
+.band.dark .ticks li::before { border-color: var(--ice); }
+
+/* ============================================================================
+   FAQ
+   ========================================================================= */
+
+.faq { display: grid; gap: 10px; max-width: 800px; }
+.faq details {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); overflow: hidden;
+}
+.faq summary {
+  cursor: pointer; padding: 17px 20px; font-weight: 600; font-size: 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  list-style: none; min-height: 48px;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after {
+  content: ""; flex: none; width: 9px; height: 9px;
+  border-right: 2px solid var(--ink-mute); border-bottom: 2px solid var(--ink-mute);
+  transform: rotate(45deg) translateY(-2px); transition: transform .2s ease;
+}
+.faq details[open] summary::after { transform: rotate(-135deg) translateY(-2px); }
+.faq details[open] summary { color: var(--brand); }
+.faq .a { padding: 0 20px 19px; font-size: 15px; color: var(--ink-soft); line-height: 1.65; max-width: 68ch; }
+
+/* ============================================================================
+   Forms
+   ========================================================================= */
+
+.form { display: grid; gap: 16px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 640px) { .form-row { grid-template-columns: 1fr; } }
+
+.field label { display: block; font-size: 13.5px; font-weight: 600; margin-bottom: 7px; }
+.field .opt { font-weight: 400; color: var(--ink-mute); }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 12px 14px; border-radius: 11px;
+  border: 1px solid var(--line); background: var(--card);
+  font-size: 16px; /* 16px minimum, or iOS Safari zooms on focus */
+}
+.field textarea { min-height: 118px; resize: vertical; line-height: 1.55; }
+.field .help { font-size: 12.5px; color: var(--ink-mute); margin-top: 6px; }
+
+/* The inert-form notice. A concept site must never let a form look like it
+   submitted — silently swallowing an enquiry is a dark pattern, and on a real
+   company's redesign it could cost them an actual order. */
+.form-note {
+  border-left: 3px solid var(--warn); background: rgba(178, 94, 0, .07);
+  padding: 14px 16px; border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 13.5px; color: #6E4415; line-height: 1.55;
+}
+.form-note strong { color: #4A2D0D; }
+.form-sent {
+  border-left: 3px solid var(--brand); background: var(--mist-2);
+  padding: 16px 18px; border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 14.5px; line-height: 1.6;
+}
+.form-sent strong { display: block; margin-bottom: 4px; }
+
+/* ============================================================================
+   Contact rail
+   ========================================================================= */
+
+.contacts { display: grid; gap: 12px; }
+.contact-item {
+  display: flex; gap: 14px; align-items: flex-start;
+  padding: 17px 19px; background: var(--card);
+  border: 1px solid var(--line); border-radius: var(--radius);
+  text-decoration: none; color: inherit;
+  transition: border-color .16s ease, transform .16s ease;
+}
+a.contact-item:hover { border-color: var(--ice-deep); transform: translateY(-2px); }
+.contact-item .ci {
+  flex: none; width: 40px; height: 40px; border-radius: 11px;
+  display: grid; place-items: center; background: var(--mist-2); color: var(--brand);
+}
+.contact-item .ci svg { width: 19px; height: 19px; }
+/* Spans nested in a span — they need display:block or the label, the value and
+   the note all run together on one line. */
+.contact-item .k, .contact-item .v, .contact-item .m { display: block; }
+.contact-item .k { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-mute); font-weight: 600; }
+.contact-item .v { font-size: 16.5px; font-weight: 600; margin-top: 2px; word-break: break-word; }
+.contact-item .m { font-size: 13px; color: var(--ink-mute); margin-top: 2px; }
+
+/* ============================================================================
+   CTA band
+   ========================================================================= */
+
+.cta-band { position: relative; overflow: hidden; background: var(--ink); color: #fff; }
+.cta-band .band-bg { position: absolute; inset: 0; opacity: .26; }
+.cta-band .band-bg img { width: 100%; object-fit: cover; }
+.cta-band .wrap { position: relative; text-align: center; }
+.cta-band .lede { color: #B9D4E8; margin-inline: auto; }
+.cta-band .btn-row { justify-content: center; }
+
+/* ============================================================================
+   Footer
+   ========================================================================= */
+
+.foot { background: var(--ink); color: #A9C4DA; padding-top: clamp(40px, 5vw, 64px); }
+.foot a { color: #DCEAF6; }
+.foot a:hover { color: var(--ice); }
+.foot-top {
+  display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 34px;
+  padding-bottom: 34px; border-bottom: 1px solid rgba(255, 255, 255, .1);
+}
+@media (max-width: 760px) { .foot-top { grid-template-columns: 1fr 1fr; } .foot-brand { grid-column: 1 / -1; } }
+.foot-brand .brand-name { color: #fff; }
+.foot-brand .brand-sub { color: #7FA0BC; }
+.foot-brand p { font-size: 14px; margin-top: 14px; max-width: 40ch; line-height: 1.6; }
+.foot h4 { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #7FA0BC; margin-bottom: 13px; font-weight: 600; }
+/* Footer links are STANDALONE targets — each <li> holds nothing but the link —
+   so WCAG 2.2 SC 2.5.8's inline-in-prose exemption does not apply to them and
+   the 24x24 floor does. At 14.5px they measure 18px tall, so the height comes
+   from padding; the list gap shrinks to compensate so the rhythm is unchanged.
+   `.foot li` gets the gap instead of `.foot ul` for the same reason. */
+.foot ul { display: grid; gap: 2px; }
+.foot ul a, .foot ul li { font-size: 14.5px; }
+.foot ul a {
+  display: inline-block; text-decoration: none;
+  padding-block: 5px; min-height: 24px;
+}
+.foot ul li { padding-block: 3px; }
+.foot ul a:hover { text-decoration: underline; }
+
+.concept-note {
+  padding: 22px 0; font-size: 12.5px; line-height: 1.6; color: #8FAEC8;
+  border-bottom: 1px solid rgba(255, 255, 255, .1); max-width: 90ch;
+}
+.concept-note strong { color: #DCEAF6; }
+
+.foot-bottom {
+  display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content: space-between;
+  padding: 18px 0 26px; font-size: 12.5px; color: #7FA0BC;
+}
+/* Standalone target again — its <span> wraps the link and nothing else. */
+.foot-bottom a { display: inline-block; padding-block: 5px; min-height: 24px; }
+
+/* ============================================================================
+   Scroll reveal
+   ----------------------------------------------------------------------------
+   `.js` is stamped on <html> by an inline <head> script, BEFORE first paint — a
+   deferred script cannot do it without a flash, because the stylesheet blocks
+   rendering and the script does not. No-JS visitors keep the whole page.
+   ========================================================================= */
+
+.js .reveal { opacity: 0; transform: translateY(15px); transition: opacity .55s ease, transform .55s ease; }
+.js .reveal.in { opacity: 1; transform: none; }
+.js .reveal-d1 { transition-delay: .07s; }
+.js .reveal-d2 { transition-delay: .14s; }
+.js .reveal-d3 { transition-delay: .21s; }
+
+/* Reduced motion MUST force full opacity. A reveal that only un-hides via
+   script leaves anyone with motion turned down looking at a blank page —
+   killing the transition alone is not enough, and is the exact bug that makes
+   a site appear broken only for the users least able to work around it. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .js .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    transition-delay: 0ms !important;
+  }
+  .seg-card:hover img { transform: none; }
+  .btn:hover, a.contact-item:hover, .nav-call:hover { transform: none; }
+}
+
+@media print {
+  .concept-banner, .nav, .cta-band, .pd-network { display: none; }
+  .js .reveal { opacity: 1 !important; transform: none !important; }
+  body { background: #fff; }
+}

@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 136" role="img" aria-label="Blue Leaf Ice">
+  <!--
+    The Blue Leaf oak-leaf mark, redrawn as vector.
+
+    The supplied logo is a 1240px JPEG of a rendered mockup: the leaf sits on a
+    photographed wet surface with a drop shadow and the wordmark baked in. It is
+    a presentation image, not an asset — there is no transparent version, no
+    vector, and at favicon size it turns to mush. So the mark is redrawn here as
+    two closed paths and the wordmark is set as live HTML text, which is the
+    same call the Khanya and THATHA concepts made with their supplied artwork.
+
+    GEOMETRY NOTES (a first draft of this read as a Christmas tree):
+      - Lobes are ROUNDED, not pointed. Each one leaves its notch on a curve
+        that bulges outward before turning back — a straight run to an apex
+        gives a conifer every time.
+      - The widest point is ~55% down, not at the base. An oak leaf is a
+        teardrop in outline; regular lobes stepping evenly outward are a fir.
+      - The base ends in a short STEM, not a spear point.
+
+    Mirrored about x=50 by construction rather than by a transform: a <use> with
+    scale(-1,1) leaves a hairline seam down the centre when the shape carries a
+    gradient, which this one does.
+
+    PRODUCTION NOTE: this is a faithful redraw for concept purposes, not a
+    replacement for the real thing. Blue Leaf should have their designer supply
+    an SVG with the type outlined.
+  -->
+  <defs>
+    <linearGradient id="bl-leaf" x1="0.15" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#DCF4FF"/>
+      <stop offset="0.4" stop-color="#7FD0FF"/>
+      <stop offset="1" stop-color="#3D93D6"/>
+    </linearGradient>
+  </defs>
+
+  <path fill="url(#bl-leaf)" d="
+    M50 10
+    C57 16 60 23 61 31
+    C68 31 73 35 73 43
+    C73 51 68 55 62 57
+    C71 57 81 62 81 71
+    C81 79 72 83 63 85
+    C71 86 76 90 76 97
+    C76 104 68 108 60 109
+    C64 111 66 114 65 118
+    C64 123 57 127 50 129
+    C43 127 36 123 35 118
+    C34 114 36 111 40 109
+    C32 108 24 104 24 97
+    C24 90 29 86 37 85
+    C28 83 19 79 19 71
+    C19 62 29 57 38 57
+    C32 55 27 51 27 43
+    C27 35 32 31 39 31
+    C40 23 43 16 50 10
+    Z"/>
+
+  <!-- Stem. Short and straight — it is what stops the silhouette reading as a
+       fir at small sizes, so it stays even though it nearly vanishes at 32px. -->
+  <path fill="none" stroke="#3D93D6" stroke-width="3" stroke-linecap="round" d="M50 129 L50 133"/>
+
+  <!-- Veins. One path at 38% so they read at display size and simply dissolve
+       under antialiasing at favicon size rather than muddying the silhouette.
+       Each side vein points at the apex of the lobe it feeds. -->
+  <path fill="none" stroke="#0B3A6B" stroke-opacity="0.38" stroke-width="1.7"
+        stroke-linecap="round" stroke-linejoin="round" d="
+    M50 18 L50 127
+    M50 45 L69 41
+    M50 45 L31 41
+    M50 71 L77 69
+    M50 71 L23 69
+    M50 97 L72 96
+    M50 97 L28 96"/>
+</svg>
