@@ -43,6 +43,16 @@ async function keepNetworkBlock(dest) {
   return found ? '\n' + found[0] + '\n' : '';
 }
 
+/* The two generators disagree by one blank line around the fence: this one
+   emits a blank line on both sides, stamp-network.mjs leaves one only above.
+   Without normalising, `--check` reports all seven pages stale immediately
+   after every stamp — and a staleness check that always cries wolf is worse
+   than no check at all, because it trains you to ignore it.
+
+   Collapsing runs of blank lines is enough to make them agree, and it cannot
+   hide a real difference: any change to actual content still shows. */
+const normalise = (s) => s.replace(/\n{3,}/g, '\n\n');
+
 const page = (p, main, network) => `<!doctype html>
 <html lang="en-ZA">
 <head>
@@ -86,11 +96,11 @@ let stale = 0;
 for (const p of PAGES) {
   const main = await readFile(join(ROOT, 'tools', 'content', p.file), 'utf8');
   const dest = join(ROOT, p.file);
-  const html = page(p, main, await keepNetworkBlock(dest));
+  const html = normalise(page(p, main, await keepNetworkBlock(dest)));
 
   if (CHECK) {
     const current = await readFile(dest, 'utf8').catch(() => '');
-    if (current !== html) {
+    if (normalise(current) !== html) {
       stale++;
       console.error(`STALE ${p.file} — run node tools/build-pages.mjs`);
     }
