@@ -163,6 +163,14 @@
        4. Nothing else. An unrecognised suburb returns null and the UI says so
           rather than guessing a fee — see the note in the caller.
 
+     ⛔ RULE (4) IS A SETTLED DECISION, not a default to improve on. It was put
+     to the client and confirmed: an unmatched suburb REFUSES TO QUOTE. Do not
+     "helpfully" fall back to Extended/from-R150 for unknowns — it reads as more
+     useful and is worse, because it commits Blue Leaf to a delivery they may
+     not run and a price they have not seen the address for. Asking one extra
+     question costs less than breaking a promise at the door. The honest
+     "we will confirm" copy lives in the caller below.
+
      On an ambiguous match the CHEAPEST zone wins (lowest data-rank). That is
      deliberately the direction that does not over-promise on speed: zone 0 is
      the closest and most certain, so resolving toward it is the safer error.
